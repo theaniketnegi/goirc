@@ -80,6 +80,12 @@ func main() {
 				if err != nil {
 					log.Printf("Error sending message: %v", err)
 				}
+			} else if strings.HasPrefix(input, "/quit") {
+				message := strings.Join(strings.Split(input, " ")[1:], " ")
+				_, err := conn.Write([]byte(fmt.Sprintf("QUIT :%s\r\n", message)))
+				if err != nil {
+					log.Printf("Error sending message: %v", err)
+				}
 			} else {
 				if len(currChannel) == 0 {
 					log.Printf("Join a channel before sending a message.\n")
