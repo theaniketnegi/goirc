@@ -56,6 +56,45 @@ func main() {
 
 	scanner := bufio.NewScanner(conn)
 
+	go func() {
+		currChannel := ""
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
+			input := scanner.Text()
+			// Handle commands like /join, /part, etc.
+
+			if strings.HasPrefix(input, "/join") {
+				_, err := conn.Write([]byte(strings.Replace(input, "/join", "JOIN", 1) + "\r\n"))
+				if err != nil {
+					log.Printf("Error sending message: %v", err)
+				}
+				currChannel = strings.Split(input, " ")[1]
+			} else if strings.HasPrefix(input, "/part") {
+				_, err := conn.Write([]byte(strings.Replace(input, "/part", "PART", 1) + "\r\n"))
+				if err != nil {
+					log.Printf("Error sending message: %v", err)
+				}
+				currChannel = ""
+			} else if strings.HasPrefix(input, "/nick") {
+				_, err := conn.Write([]byte(strings.Replace(input, "/nick", "NICK", 1) + "\r\n"))
+				if err != nil {
+					log.Printf("Error sending message: %v", err)
+				}
+			} else {
+				if len(currChannel) == 0 {
+					log.Printf("Join a channel before sending a message.\n")
+					continue
+				}
+
+				_, err := conn.Write([]byte(fmt.Sprintf("PRIVMSG %s :%s", currChannel, input) + "\r\n"))
+
+				if err != nil {
+					log.Printf("Error sending message: %v", err)
+				}
+			}
+		}
+	}()
+
 	for scanner.Scan() {
 		messageFromServer := scanner.Text()
 
